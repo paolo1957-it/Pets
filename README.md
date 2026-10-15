@@ -17,6 +17,10 @@ Stesso aspetto e funzionamento di [Distributori](https://github.com/paolo1957-it
   scarica da Overpass tutti i punti d'Italia e li salva nella cartella `dati/` del sito pubblicato,
   divisi in tessere da 0,25° (circa 28 × 20 km). Per non pesare su Overpass li riscarica al massimo una volta
   ogni 20 ore; nel frattempo ricopia quelli già pubblicati.
+- Su OpenStreetMap mancano molti veterinari: quando riscarica i dati, `aggiorna_animali.js` esegue anche
+  `aggiorna_overture.py`, che prende da [Overture Maps](https://overturemaps.org) (licenza CDLA Permissive 2.0)
+  veterinari e cliniche veterinarie in Italia; si aggiungono solo quelli che non sono già su OpenStreetMap
+  (entro 60 m, o 300 m con un nome simile). Se Overture non risponde si usa solo OpenStreetMap.
 - La cartella `dati/` **non** sta nel repository. Se il sito non ha i dati, l'app li chiede direttamente a Overpass.
 
 ## Pubblicazione
@@ -30,10 +34,10 @@ Per riscaricare subito i dati: Actions → *Pubblica sito e aggiorna dati* → *
 - `core.js`: logica (tipi di punto, orari di apertura, distanze, tessere)
 - `app.js`: mappa, GPS, elenco, impostazioni
 - `config.js`: impostazioni iniziali e numero di versione
-- `aggiorna_animali.js`, `.github/workflows/pubblica.yml`: scaricamento dei dati e pubblicazione
+- `aggiorna_animali.js`, `aggiorna_overture.py`, `.github/workflows/pubblica.yml`: scaricamento dei dati e pubblicazione
 - `sw.js`, `manifest.webmanifest`, `icon.svg`: installazione come app
 
 ## Fonte dei dati
 
-© OpenStreetMap e chi contribuisce (licenza ODbL). Le informazioni sono inserite da volontari e possono
+© OpenStreetMap e chi contribuisce (licenza ODbL). Veterinari anche da Overture Maps Foundation (licenza CDLA Permissive 2.0). Le informazioni sono inserite da volontari e possono
 essere incomplete o non aggiornate.

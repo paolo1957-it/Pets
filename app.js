@@ -326,7 +326,9 @@
     if (d.w) righe.push(`<p><a href="${attr(sitoWeb(d.w))}" target="_blank" rel="noopener">Sito web</a></p>`);
     righe.push(`<p>${PT.formattaDistanza(d.distanza)} · ${d.distanza < 2500 ? "circa " + PT.minutiAPiedi(d.distanza) + " min a piedi" : "circa " + PT.minutiInAuto(d.distanza) + " min in auto"}</p>`);
     voce.push(distanzaParlata(d.distanza) + ".");
-    righe.push(`<p class="fonte">Fonte: OpenStreetMap · <a href="${attr(linkOsm(d))}" target="_blank" rel="noopener">Vedi su OpenStreetMap</a></p>`);
+    righe.push(d.f === "o"
+      ? '<p class="fonte">Fonte: Overture Maps (non ancora su OpenStreetMap)</p>'
+      : `<p class="fonte">Fonte: OpenStreetMap · <a href="${attr(linkOsm(d))}" target="_blank" rel="noopener">Vedi su OpenStreetMap</a></p>`);
     const pulsanti = [`<a class="pop-vai" href="${linkNavigazione(d.la, d.lo)}" target="_blank" rel="noopener">Portami qui</a>`];
     if (tel.length) pulsanti.push(`<a class="pop-vai pop-chiama" href="tel:${attr(tel[0].replace(/[^\d+]/g, ""))}">Chiama</a>`);
     return `<div class="pop" data-voce="${attr(voce.join(" "))}"><h3>${esc(tit)}</h3>${righe.join("")}
