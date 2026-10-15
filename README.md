@@ -1,4 +1,6 @@
-# Pets
+# Qui-Pets
+
+(Il repository e l'indirizzo del sito restano `Pets`.)
 
 Web app per il telefono che mostra i servizi per gli animali domestici vicino a te presi da OpenStreetMap:
 pronto soccorso veterinari, veterinari e cliniche veterinarie, farmacie e parafarmacie veterinarie, negozi per
