@@ -37,6 +37,7 @@
     A: { nome: "Area cani", plurale: "Aree cani" },
     K: { nome: "Canile o rifugio", plurale: "Canili e rifugi" },
     B: { nome: "Pensione per animali", plurale: "Pensioni per animali" },
+    W: { nome: "Fontanella", plurale: "Fontanelle" },
     X: { nome: "Altro servizio per animali", plurale: "Altri servizi per animali" }
   };
 
@@ -72,6 +73,7 @@
     if (t.leisure === "dog_park") return "A";
     if (am === "animal_shelter") return "K";
     if (am === "animal_boarding") return "B";
+    if (am === "drinking_water" || am === "watering_place" || (am === "fountain" && t.drinking_water === "yes")) return "W";
     if (ALTRI[am]) return "X";
     return null;
   }
@@ -111,13 +113,22 @@
       if (t.drinking_water === "yes") info.push("con fontanella");
       if (info.length) p.x = info.join(", ");
     }
+    if (k === "W") {
+      const info = [];
+      if (t.amenity === "watering_place") info.push("abbeveratoio");
+      if (t.dog === "yes" || t["drinking_water:dog"] === "yes" || t.bowl === "yes") info.push("con ciotola per cani");
+      if (t.drinking_water === "no") info.push("acqua non potabile");
+      if (t.seasonal === "yes") info.push("solo in alcuni mesi");
+      if (info.length) p.x = info.join(", ");
+    }
     if (k === "S" && t.emergency !== "yes" && !RE_PS.test(t.name || "")) p.e = 1;  // pronto soccorso dedotto dall'orario 24/7
     return p;
   }
 
-  // Il punto passa il filtro della categoria scelta in alto ("tutto" o un codice; i veterinari includono i pronto soccorso)
+  // Il punto passa il filtro della categoria scelta in alto ("tutto" o un codice; i veterinari includono i pronto soccorso).
+  // Le fontanelle sono tantissime (in città una ogni poche strade): si vedono solo scegliendole nel menu.
   function nellaCategoria(d, cat) {
-    if (!cat || cat === "tutto") return true;
+    if (!cat || cat === "tutto") return d.k !== "W";
     if (cat === "V") return d.k === "V" || d.k === "S";
     return d.k === cat;
   }
@@ -261,6 +272,8 @@
       `nwr${f}[amenity~"^(veterinary|animal_shelter|animal_boarding|animal_training|animal_breeding|animal_grooming)$"];` +
       `nwr${f}[shop~"^(pet|pet_grooming|veterinary_pharmacy)$"];` +
       `nwr${f}[leisure=dog_park];` +
+      `nwr${f}[amenity~"^(drinking_water|watering_place)$"];` +
+      `nwr${f}[amenity=fountain][drinking_water=yes];` +
       `nwr${f}[amenity=pharmacy][name~"veterinar|animal|pet",i];` +
       `nwr${f}[shop=chemist][name~"veterinar|animal|pet",i];` +
       `);out center tags;`;

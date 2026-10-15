@@ -21,7 +21,7 @@
   --barra: #7a4210;
   /* colori dei tipi di punto */
   --t-S: #d62828; --t-V: #138a45; --t-F: #0582b0; --t-N: #e85d04; --t-T: #c2185b;
-  --t-A: #5f8a1c; --t-K: #8d5524; --t-B: #5c4db1; --t-X: #6c757d;
+  --t-A: #5f8a1c; --t-K: #8d5524; --t-B: #5c4db1; --t-X: #6c757d; --t-W: #2b8fd6;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -406,6 +406,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .mk.tipo-K { --mk-sfondo: var(--t-K); }
 .mk.tipo-B { --mk-sfondo: var(--t-B); }
 .mk.tipo-X { --mk-sfondo: var(--t-X); font-size: 20px; }
+.mk.tipo-W { --mk-sfondo: var(--t-W); border-radius: 50%; }
 .mk.largo { width: auto; min-width: 30px; padding: 0 4px; }
 .mk.tipo-S { font-size: 16px; letter-spacing: .02em; }
 .mk svg { display: block; }
