@@ -26,8 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Scarica i servizi per animali da OpenStreetMap
-        timeout-minutes: 45
+      - name: Prepara Python per i veterinari di Overture Maps
+        continue-on-error: true   # senza, aggiorna_animali.js usa solo OpenStreetMap
+        run: pip install --quiet pyarrow fsspec aiohttp
+
+      - name: Scarica i servizi per animali da OpenStreetMap e Overture Maps
+        timeout-minutes: 60
         continue-on-error: true   # se Overpass non risponde, l'app chiede i dati direttamente dal telefono
         env:
           SITO: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/

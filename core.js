@@ -133,6 +133,47 @@
     return d.k === cat;
   }
 
+  // ---------- Veterinari da Overture Maps ----------
+  // Su OpenStreetMap mancano molti veterinari: si aggiungono quelli di Overture che OpenStreetMap non ha già.
+  const PAROLE_GENERICHE = /\b(ambulatori[oa]?|clinica|cliniche|veterinari[ao]?|veterinarie|ospedale|studio|centro|medico|medica|dott?\.?|dr\.?|dottor(essa)?|ssa|di|del|della|dei|delle|da|e|il|la|lo|srl|snc|sas|s\.?r\.?l\.?|associat[oi]|animali|pet|vet)\b/g;
+  function paroleNome(n) {
+    return new Set(String(n || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(PAROLE_GENERICHE, " ").split(/[^a-z0-9]+/).filter((w) => w.length >= 4));
+  }
+  function nomiSimili(a, b) {
+    const pa = paroleNome(a);
+    for (const w of paroleNome(b)) if (pa.has(w)) return true;
+    return false;
+  }
+  /**
+   * Aggiunge a "punti" (OpenStreetMap) i veterinari di "extra" (Overture) che non sono doppioni:
+   * scarta quelli entro 60 m da un veterinario già presente, o entro 300 m con un nome simile.
+   */
+  function unisciVeterinari(punti, extra) {
+    const CELLA = 0.005;   // circa 500 m
+    const griglia = new Map();
+    const chiave = (la, lo) => Math.floor(la / CELLA) + "_" + Math.floor(lo / CELLA);
+    const metti = (p) => { const c = chiave(p.la, p.lo); if (!griglia.has(c)) griglia.set(c, []); griglia.get(c).push(p); };
+    const doppione = (p) => {
+      const i = Math.floor(p.la / CELLA), j = Math.floor(p.lo / CELLA);
+      for (let a = i - 1; a <= i + 1; a++) for (let b = j - 1; b <= j + 1; b++) {
+        for (const q of griglia.get(a + "_" + b) || []) {
+          const d = distanza(p.la, p.lo, q.la, q.lo);
+          if (d < 60 || (d < 300 && nomiSimili(p.n, q.n))) return true;
+        }
+      }
+      return false;
+    };
+    for (const p of punti) if (p.k === "V" || p.k === "S") metti(p);
+    const aggiunti = [];
+    for (const p of extra || []) {
+      if (doppione(p)) continue;
+      metti(p);
+      aggiunti.push(p);
+    }
+    return punti.concat(aggiunti);
+  }
+
   // ---------- Orari di apertura (opening_hours di OSM) ----------
   // Capisce i casi più comuni ("Mo-Fr 08:30-12:30,15:30-19:30; Sa 09:00-12:30; Su off", "24/7").
   // Per orari più complicati (mesi, settimane, alba e tramonto…) restituisce null: l'app mostra il testo così com'è.
@@ -324,7 +365,7 @@
   const API = {
     distanza, formattaDistanza, minutiInAuto, minutiAPiedi, TIPI, tipoDaTag, compatta, nellaCategoria,
     leggiOrari, statoApertura, testoApertura, orariLeggibili, tessereNelRaggio, nomeTessera, riquadro,
-    queryOverpass, preparaPunti, statistiche, capitalizza, titolo, indirizzo, nomeTipo, GIORNI_IT
+    queryOverpass, unisciVeterinari, nomiSimili, preparaPunti, statistiche, capitalizza, titolo, indirizzo, nomeTipo, GIORNI_IT
   };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.PT = API;
