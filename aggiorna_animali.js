@@ -19,6 +19,8 @@ const PT = require("./core.js");
 const CARTELLA = path.join(__dirname, "dati");
 const PASSO = 0.25;
 const ORE_VALIDI = 20;
+// Da aumentare quando cambiano i tipi di punti scaricati: i dati pubblicati con una versione diversa vengono riscaricati subito
+const VERSIONE_DATI = 2;
 const USER_AGENT = "Pets/1.0 (app web personale; dati OpenStreetMap)";
 const SERVER = [
   "https://overpass-api.de/api/interpreter",
@@ -89,6 +91,7 @@ function salva(elementi) {
   for (const [t, lista] of tessere) fs.writeFileSync(path.join(CARTELLA, t), JSON.stringify({ d: lista }));
   const indice = {
     passo: PASSO,
+    versioneDati: VERSIONE_DATI,
     aggiornato: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
     punti: visti.size,
     perTipo: conta,
@@ -141,7 +144,9 @@ async function main() {
     try {
       const { indice } = await indicePubblicato(sito);
       const ore = (Date.now() - Date.parse(indice.aggiornato)) / 3600000;
-      if (ore < ORE_VALIDI) {
+      if (indice.versioneDati !== VERSIONE_DATI) {
+        console.log("I dati pubblicati sono di una versione precedente: li riscarico da Overpass.");
+      } else if (ore < ORE_VALIDI) {
         console.log(`Dati pubblicati ${ore.toFixed(1)} ore fa: non serve riscaricarli.`);
         await recuperaDalSito(sito);
         return;

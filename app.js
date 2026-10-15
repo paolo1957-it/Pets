@@ -72,7 +72,8 @@
   const ALBERO = svg('<path d="M12 2 5 12h4l-3.5 5.5h13L15 12h4Z" fill="currentColor"/><rect x="10.8" y="17" width="2.4" height="5" rx="1" fill="currentColor"/>');
   const CASA = svg('<path d="M3 11.2 12 3l9 8.2V21h-6v-6H9v6H3Z" fill="currentColor"/>');
   const LUNA = svg('<path d="M19.5 14.6A8 8 0 1 1 9.4 4.5a6.4 6.4 0 0 0 10.1 10.1Z" fill="currentColor"/>');
-  const SIMBOLO = { S: "PS", V: ZAMPA, F: CROCE, N: BORSA, T: FORBICI, A: ALBERO, K: CASA, B: LUNA, X: "+" };
+  const GOCCIA = svg('<path d="M12 2.5C9 7 5.8 10.6 5.8 14.6a6.2 6.2 0 0 0 12.4 0C18.2 10.6 15 7 12 2.5Z" fill="currentColor"/>', 16);
+  const SIMBOLO = { S: "PS", V: ZAMPA, F: CROCE, N: BORSA, T: FORBICI, A: ALBERO, K: CASA, B: LUNA, W: GOCCIA, X: "+" };
   const icona = (cls, html) => L.divIcon({ className: "", html: `<div class="mk ${cls}">${html ?? ""}</div>`, iconSize: null });
   const LARGHI = new Set(["S"]);
   const classiMarker = (d) => `tipo-${d.k}${LARGHI.has(d.k) ? " largo" : ""}${classiApertura(d)}`;
@@ -301,7 +302,10 @@
     const voce = [tit + "."];
     const righe = [];
     if (tit.toLowerCase() !== tipo.toLowerCase()) voce.push(tipo + ".");
-    righe.push(`<p class="pop-tipo tipo-${d.k}">${esc(tipo)}${d.x && d.k !== "X" ? " · " + esc(d.x) : ""}</p>`);
+    // senza nome il titolo è già il tipo: sotto resta solo il dettaglio, se c'è
+    const extra = d.x && d.k !== "X" ? d.x : "";
+    const rigaTipo = tit.toLowerCase() === tipo.toLowerCase() ? extra.charAt(0).toUpperCase() + extra.slice(1) : tipo + (extra ? " · " + extra : "");
+    if (rigaTipo) righe.push(`<p class="pop-tipo tipo-${d.k}">${esc(rigaTipo)}</p>`);
     if (ind) { righe.push(`<p>${esc(ind)}</p>`); voce.push(ind + "."); }
     if (d.k === "S") righe.push(d.e
       ? '<p class="avviso">Aperto 24 ore su 24: in emergenza telefona prima per sapere se possono riceverti</p>'
@@ -336,7 +340,7 @@
   }
 
   // Ordine sulla mappa: pronto soccorso e veterinari sopra, poi farmacie, poi il resto; gli aperti sopra i chiusi
-  const PESO = { S: 900, V: 700, F: 600, A: 500, N: 400, K: 400, T: 300, B: 300, X: 100 };
+  const PESO = { S: 900, V: 700, F: 600, A: 500, N: 400, K: 400, T: 300, B: 300, X: 100, W: 50 };
 
   function render() {
     livelli.raggio.clearLayers();
@@ -579,6 +583,7 @@
       A: ": aree dove i cani possono correre liberi.",
       K: ": canili e rifugi per animali, dove si può anche adottare.",
       B: ": dove lasciare il tuo animale quando sei via.",
+      W: ": fontanelle e abbeveratoi per far bere il cane. Si vedono solo scegliendo “Fontanelle” nel menu.",
       X: ": addestramento, allevamenti e altro."
     }[k] || "."}</div></li>`).join("");
 
