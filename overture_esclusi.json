@@ -1,0 +1,6 @@
+{
+ "nota": "Punti di Overture Maps da non mostrare (sedi inesistenti o sbagliate). La chiave è l'identificativo del punto nell'app.",
+ "esclusi": {
+  "o654b766f-26a2-40": "Clinica Veterinaria Sant'Anna, via Turati 11, San Martino Siccomario: sede inesistente (la clinica è al n. 34)"
+ }
+}
