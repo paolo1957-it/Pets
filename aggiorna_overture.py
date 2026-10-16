@@ -9,7 +9,7 @@ Legge solo le parti dei file di Overture che coprono l'Italia (i file sono ordin
 
 Uso: python3 aggiorna_overture.py FILE_USCITA     (serve: pip install pyarrow fsspec aiohttp)
 """
-import json, re, sys, time, urllib.request
+import json, os, re, sys, time, urllib.request
 import fsspec
 import pyarrow.parquet as pq
 
@@ -17,6 +17,8 @@ BASE = "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/"
 X0, Y0, X1, Y1 = 6.6, 35.4, 18.6, 47.1          # riquadro dell'Italia
 # categorie di Overture → tipo dell'app (S pronto soccorso veterinario, V veterinario)
 CATEGORIE = {"veterinarian": "V", "veterinary_care": "V", "animal_hospital": "V", "emergency_pet_hospital": "S"}
+# punti segnalati come sbagliati: identificativo dell'app → motivo
+ESCLUSI = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overture_esclusi.json")))["esclusi"]
 COLONNE = ["id", "confidence", "websites", "phones", "addresses", "names", "operating_status", "taxonomy", "bbox"]
 
 
@@ -54,6 +56,8 @@ def main():
                     continue
                 ind = (r["addresses"] or [{}])[0] or {}
                 if ind.get("country") != "IT":
+                    continue
+                if "o" + r["id"][:16] in ESCLUSI:
                     continue
                 b = r["bbox"]
                 p = {"i": "o" + r["id"][:16], "k": k, "la": round((b["ymin"] + b["ymax"]) / 2, 6),

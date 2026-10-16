@@ -21,6 +21,7 @@ Stesso aspetto e funzionamento di [Distributori](https://github.com/paolo1957-it
   `aggiorna_overture.py`, che prende da [Overture Maps](https://overturemaps.org) (licenza CDLA Permissive 2.0)
   veterinari e cliniche veterinarie in Italia; si aggiungono solo quelli che non sono già su OpenStreetMap
   (entro 60 m, o 300 m con un nome simile). Se Overture non risponde si usa solo OpenStreetMap.
+  I punti di Overture segnalati come sbagliati si tolgono aggiungendo il loro identificativo in `overture_esclusi.json`.
 - La cartella `dati/` **non** sta nel repository. Se il sito non ha i dati, l'app li chiede direttamente a Overpass.
 
 ## Pubblicazione
