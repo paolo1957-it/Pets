@@ -3,7 +3,7 @@
  */
 window.PETS_CONFIG = {
   // Versione dell'app, mostrata in diagonale sulla mappa. Aumentala a ogni aggiornamento.
-  versione: "4",
+  versione: "5",
 
   // Raggio di ricerca iniziale in metri (modificabile anche dall'app)
   raggioMetri: 5000,
@@ -11,9 +11,10 @@ window.PETS_CONFIG = {
   // Ricentra e ricalcola quando ti sposti di più di questi metri
   ricaricaDopoMetri: 300,
 
-  // Cosa mostrare all'inizio: "tutto" oppure S pronto soccorso veterinari, V veterinari, F farmacie veterinarie,
-  // N negozi per animali, T toelettature, A aree cani, K canili e rifugi, B pensioni, W fontanelle, X altro
-  categoria: "tutto",
+  // Cosa mostrare all'inizio (si possono scegliere più tipi): S pronto soccorso veterinari, V veterinari,
+  // F farmacie veterinarie, N negozi per animali, T toelettature, A aree cani, K canili e rifugi, B pensioni,
+  // W fontanelle, X altro
+  categorie: ["S", "V", "F", "N", "T", "A", "K", "B", "X"],
 
   // Massimo di segnaposto sulla mappa (i più vicini): oltre, la mappa diventa lenta sul telefono
   maxSegnaposto: 1500,

@@ -125,12 +125,12 @@
     return p;
   }
 
-  // Il punto passa il filtro della categoria scelta in alto ("tutto" o un codice; i veterinari includono i pronto soccorso).
-  // Le fontanelle sono tantissime (in città una ogni poche strade): si vedono solo scegliendole nel menu.
+  // Il punto passa il filtro dei tipi scelti in alto ("tutto", un codice o un Set di codici; i veterinari includono
+  // i pronto soccorso). Con "tutto" restano fuori le fontanelle, tantissime: si vedono solo scegliendole nel menu.
   function nellaCategoria(d, cat) {
     if (!cat || cat === "tutto") return d.k !== "W";
-    if (cat === "V") return d.k === "V" || d.k === "S";
-    return d.k === cat;
+    const scelti = cat instanceof Set ? cat : new Set([cat]);
+    return scelti.has(d.k) || (d.k === "S" && scelti.has("V"));
   }
 
   // ---------- Veterinari da Overture Maps ----------

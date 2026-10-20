@@ -15,7 +15,7 @@
     gps: null,          // ultima posizione GPS {lat, lon, acc}
     centro: null,       // punto della ricerca {lat, lon, daGps}
     raggio: +leggiPref("raggio", cfg.raggioMetri || 2000),
-    categoria: leggiPref("categoria", cfg.categoria || "tutto"),
+    categorie: null,    // Set dei tipi scelti in alto (anche più di uno)
     ordine: leggiPref("ordine", "distanza"),
     tutti: [],          // punti scaricati intorno al centro
     vicini: [],         // punti entro il raggio, della categoria scelta, con distanza e apertura
@@ -24,7 +24,16 @@
     seguiGps: true
   };
   if (!RAGGI.includes(stato.raggio)) stato.raggio = 2000;
-  if (stato.categoria !== "tutto" && !PT.TIPI[stato.categoria]) stato.categoria = "tutto";
+  // Tipi scelti: "S,V,…" salvato sul telefono; dalla versione con un solo tipo ("tutto" o un codice) si riparte da lì
+  const CATEGORIE_INIZIO = cfg.categorie || Object.keys(PT.TIPI).filter((k) => k !== "W");
+  {
+    let scelti = leggiPref("categorie", null);
+    if (scelti === null) {
+      const vecchia = leggiPref("categoria", "tutto");
+      scelti = PT.TIPI[vecchia] ? vecchia : CATEGORIE_INIZIO.join(",");
+    }
+    stato.categorie = new Set(scelti.split(",").filter((k) => PT.TIPI[k]));
+  }
   if (!["distanza", "nome"].includes(stato.ordine)) stato.ordine = "distanza";
 
   // ---------- Mappa ----------
@@ -104,7 +113,7 @@
   };
   const sitoWeb = (w) => /^https?:\/\//i.test(w) ? w : "https://" + w;
   const telefoni = (t) => String(t || "").split(/[;,]/).map((x) => x.trim()).filter(Boolean);
-  const nomeCategoria = () => stato.categoria === "tutto" ? "servizi per animali" : PT.TIPI[stato.categoria].plurale.toLowerCase();
+  const nomeCategoria = () => stato.categorie.size === 1 ? PT.TIPI[[...stato.categorie][0]].plurale.toLowerCase() : "servizi per animali";
 
   // Scarica e legge il JSON entro "ms" millisecondi in tutto (risposta + dati)
   async function fetchJson(url, opts, ms) {
@@ -304,7 +313,7 @@
   // Ricalcola distanze, aperture e filtri senza riscaricare (cambio categoria, filtri, orologio)
   function ricalcola() {
     if (!stato.centro) return;
-    stato.vicini = PT.preparaPunti(stato.tutti, stato.centro.lat, stato.centro.lon, stato.raggio, stato.categoria)
+    stato.vicini = PT.preparaPunti(stato.tutti, stato.centro.lat, stato.centro.lon, stato.raggio, stato.categorie)
       .filter(passaFiltri);
     render();
   }
@@ -400,7 +409,7 @@
       markerPerId.set(d.i, m);
     }
     if (stato.vicini.length > daMostrare.length) {
-      toast(`Sulla mappa i ${daMostrare.length} più vicini su ${stato.vicini.length}: scegli un tipo o riduci il raggio.`);
+      toast(`Sulla mappa i ${daMostrare.length} più vicini su ${stato.vicini.length}: togli qualche tipo o riduci il raggio.`);
     }
 
     const st = PT.statistiche(tuttiNelRaggio());
@@ -568,13 +577,36 @@
       carica();
     }
   });
-  $("categoria").value = stato.categoria;
-  $("categoria").addEventListener("change", (e) => {
-    stato.categoria = e.target.value;
-    salvaPref("categoria", stato.categoria);
+  // Cosa mostrare: lista di caselle, se ne possono spuntare più di una; la mappa cambia subito
+  const BREVE = { S: "Pronto soccorso", V: "Veterinari", F: "Farmacie", N: "Negozi", T: "Toelettature",
+    A: "Aree cani", K: "Canili", B: "Pensioni", W: "Fontanelle", X: "Altro" };
+  $("cat-voci").innerHTML = Object.entries(PT.TIPI).map(([k, t]) =>
+    `<label class="cat-voce"><input type="checkbox" value="${k}"${stato.categorie.has(k) ? " checked" : ""}>` +
+    `<span class="mk tipo-${k}${LARGHI.has(k) ? " largo" : ""}">${SIMBOLO[k]}</span><span>${esc(t.plurale)}</span></label>`).join("");
+  function scriviCategorie() {
+    const scelti = Object.keys(PT.TIPI).filter((k) => stato.categorie.has(k));
+    $("categoria-testo").textContent = !scelti.length ? "Nessuno"
+      : scelti.length > 3 ? scelti.length + " tipi"
+      : BREVE[scelti[0]] + (scelti.length > 1 ? " +" + (scelti.length - 1) : "");
+  }
+  scriviCategorie();
+  $("cat-voci").addEventListener("change", (e) => {
+    const k = e.target.value;
+    if (e.target.checked) stato.categorie.add(k); else stato.categorie.delete(k);
+    salvaPref("categorie", [...stato.categorie].join(","));
+    scriviCategorie();
     mappa.closePopup();
     ricalcola();
-    toast("Ora vedi: " + (stato.categoria === "tutto" ? "tutti i servizi per animali" : PT.TIPI[stato.categoria].plurale.toLowerCase()));
+  });
+  function apriCategorie(apri) {
+    $("cat-menu").hidden = !apri;
+    $("categoria").setAttribute("aria-expanded", String(apri));
+    if (!apri && !stato.categorie.size) toast("Nessun tipo scelto: la mappa resta vuota");
+  }
+  $("categoria").addEventListener("click", () => apriCategorie($("cat-menu").hidden));
+  $("cat-ok").addEventListener("click", () => { apriCategorie(false); $("categoria").focus(); });
+  document.addEventListener("pointerdown", (e) => {
+    if (!$("cat-menu").hidden && !$("cat-box").contains(e.target)) apriCategorie(false);
   });
   function aggiornaChipOrdine() {
     document.querySelectorAll(".chip.ordine").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.ordine === stato.ordine)));
@@ -644,7 +676,11 @@
     if (dest) dest.scrollIntoView({ behavior: "smooth", block: "start" });
   }));
   $("guida-versione").textContent = "Versione " + (cfg.versione || "");
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !chiudiGuida()) chiudiElenco(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!$("cat-menu").hidden) { apriCategorie(false); $("categoria").focus(); return; }
+    if (!chiudiGuida()) chiudiElenco();
+  });
 
   // ---------- Lettura vocale dei riquadri ----------
   let letturaAttiva = leggiPref("lettura", "1") !== "0";
