@@ -26,6 +26,9 @@ RE_PENSIONE = re.compile(r"pension[ei]|\bhotel\b|\bresort\b|asilo (per|e|diurno)
 RE_PER_ANIMALI = re.compile(r"\b(pets?|dogs?|cats?|gatto|bau|miao) ?hotel\b|\bper (cani|gatti|animali)\b|"
                             r"pension[ei]\b.*\b(cani|gatti|animali|felin[aei])\b", re.I)
 RE_CLINICA = re.compile(r"veterinari|clinica|ambulatorio|ospedale", re.I)
+# tra le "pet_boarding" di Overture ci sono anche case vacanze e agenzie: si scartano dal nome
+RE_NON_PENSIONE = re.compile(r"casa vacanz|case vacanz|affitt|appartament|holiday|immobiliar|"
+                             r"\bno pension", re.I)
 GRUPPI_ANIMALI = {"animal_or_pet_service", "animal_and_pet_store"}
 # punti segnalati come sbagliati: identificativo dell'app → motivo
 ESCLUSI = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overture_esclusi.json")))["esclusi"]
@@ -43,7 +46,9 @@ def tipo(tassonomia, nome):
     """Tipo dell'app per un luogo di Overture, oppure None."""
     primaria = tassonomia.get("primary") or ""
     k = CATEGORIE.get(primaria)
-    if k == "B" or not RE_PENSIONE.search(nome):
+    if k == "B":
+        return None if RE_NON_PENSIONE.search(nome) else k
+    if not RE_PENSIONE.search(nome):
         return k
     if RE_CLINICA.search(nome):
         return k

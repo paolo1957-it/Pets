@@ -144,6 +144,12 @@
     return new Set(String(n || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(PAROLE_GENERICHE, " ").split(/[^a-z0-9]+/).filter((w) => w.length >= 4));
   }
+  // Stesso nome a parte maiuscole, accenti e punteggiatura (Overture ha spesso due copie dello stesso posto),
+  // purché non sia solo un nome generico come "Pensione per cani"
+  const nomeNormale = (n) => String(n || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "");
+  function stessoNome(a, b) {
+    return paroleNome(a).size > 0 && nomeNormale(a) === nomeNormale(b);
+  }
   function nomiSimili(a, b) {
     const pa = paroleNome(a);
     for (const w of paroleNome(b)) if (pa.has(w)) return true;
@@ -151,7 +157,8 @@
   }
   /**
    * Aggiunge a "punti" (OpenStreetMap) i veterinari e le pensioni di "extra" (Overture) che non sono doppioni:
-   * scarta quelli entro 60 m da un punto dello stesso genere già presente, o entro 300 m con un nome simile.
+   * scarta quelli entro 60 m da un punto dello stesso genere già presente, entro 300 m con un nome simile
+   * o entro 1 km con lo stesso nome.
    */
   function unisciOverture(punti, extra) {
     const CELLA = 0.005;   // circa 500 m
@@ -161,10 +168,10 @@
     const metti = (p) => { const c = chiave(GENERE[p.k], p.la, p.lo); if (!griglia.has(c)) griglia.set(c, []); griglia.get(c).push(p); };
     const doppione = (p) => {
       const i = Math.floor(p.la / CELLA), j = Math.floor(p.lo / CELLA);
-      for (let a = i - 1; a <= i + 1; a++) for (let b = j - 1; b <= j + 1; b++) {
+      for (let a = i - 2; a <= i + 2; a++) for (let b = j - 2; b <= j + 2; b++) {
         for (const q of griglia.get(GENERE[p.k] + a + "_" + b) || []) {
           const d = distanza(p.la, p.lo, q.la, q.lo);
-          if (d < 60 || (d < 300 && nomiSimili(p.n, q.n))) return true;
+          if (d < 60 || (d < 300 && nomiSimili(p.n, q.n)) || (d < 1000 && stessoNome(p.n, q.n))) return true;
         }
       }
       return false;
