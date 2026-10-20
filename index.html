@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <div class="app">
@@ -26,22 +26,17 @@
         <label for="cerca-indirizzo" class="sr-only">Cerca un indirizzo</label>
         <input id="cerca-indirizzo" type="search" placeholder="Cerca…" autocomplete="off" enterkeyhint="search">
       </form>
-      <label class="carb">
-        <span class="sr-only">Cosa mostrare</span>
-        <select id="categoria">
-          <option value="tutto" selected>Tutto</option>
-          <option value="S">Pronto soccorso</option>
-          <option value="V">Veterinari</option>
-          <option value="F">Farmacie</option>
-          <option value="N">Negozi</option>
-          <option value="T">Toelettature</option>
-          <option value="A">Aree cani</option>
-          <option value="K">Canili</option>
-          <option value="B">Pensioni</option>
-          <option value="W">Fontanelle</option>
-          <option value="X">Altro</option>
-        </select>
-      </label>
+      <div class="carb" id="cat-box">
+        <button class="cat-btn" id="categoria" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="cat-menu">
+          <span class="sr-only">Cosa mostrare: </span><span id="categoria-testo">Cosa mostrare</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="cat-menu" id="cat-menu" role="group" aria-label="Cosa mostrare: puoi sceglierne più di uno" hidden>
+          <p class="cat-titolo">Cosa mostrare <small>(anche più di uno)</small></p>
+          <div id="cat-voci"></div>
+          <button class="cat-ok" id="cat-ok" type="button">Fatto</button>
+        </div>
+      </div>
       <label class="raggio">
         <span class="sr-only">Raggio</span>
         <select id="raggio">
@@ -192,7 +187,7 @@
           <h3>I pulsanti</h3>
           <ul class="g-lista">
             <li><span class="g-segno"><span class="g-barra">Cerca un indirizzo…</span></span><div><b>Cerca</b>: scrivi una via o un paese per vedere i servizi lì invece che intorno a te.</div></li>
-            <li><span class="g-segno"><span class="g-barra corto">Tutto</span></span><div><b>Cosa mostrare</b>: tutto, oppure solo pronto soccorso veterinari, veterinari (compresi quelli con pronto soccorso), farmacie veterinarie, negozi, toelettature, aree cani, canili, pensioni o altri servizi. Le <b>fontanelle</b> sono tante e compaiono solo se le scegli qui.</div></li>
+            <li><span class="g-segno"><span class="g-barra corto">Veterinari +2</span></span><div><b>Cosa mostrare</b>: tocca e spunta i tipi che vuoi vedere, anche più di uno insieme: pronto soccorso veterinari, veterinari (compresi quelli con pronto soccorso), farmacie veterinarie, negozi, toelettature, aree cani, canili, pensioni, fontanelle o altri servizi. La mappa cambia subito; tocca <b>Fatto</b> o fuori dalla lista per chiuderla. All'inizio sono scelti tutti tranne le <b>fontanelle</b>, che sono tante.</div></li>
             <li><span class="g-segno"><span class="g-barra corto">2 km</span></span><div><b>Raggio</b>: quanto lontano cercare, da 1 a 25 km.</div></li>
             <li><span class="g-segno"><span class="g-fab"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span></span><div><b>Posizione</b>: riporta la mappa su di te e la fa seguire mentre ti sposti.</div></li>
             <li><span class="g-segno"><span class="g-fab nero"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="currentColor"/><circle cx="4.5" cy="12" r="1.6" fill="currentColor"/><circle cx="4.5" cy="18" r="1.6" fill="currentColor"/></svg></span></span><div><b>Elenco</b>: apre la pagina con tutti i punti vicini e le impostazioni.</div></li>
@@ -246,7 +241,7 @@
             <li>Se trovi un <b>animale ferito o abbandonato</b> per strada, avvisa la polizia locale o il servizio veterinario della tua ASL.</li>
             <li>Su iPhone: in Safari tocca <b>Condividi → Aggiungi alla schermata Home</b> per usarla come un'app.</li>
             <li>Al primo avvio consenti l'accesso alla <b>posizione</b>. Tocca la mappa una volta per abilitare suoni e voce.</li>
-            <li>Con <b>Tutto</b> in città i segnaposto possono essere molti: scegli un tipo o riduci il raggio.</li>
+            <li>Con tanti tipi scelti, in città i segnaposto possono essere molti: togli qualche tipo o riduci il raggio.</li>
             <li>Il numero di <b>versione</b> scritto sulla mappa ti dice se hai l'ultimo aggiornamento.</li>
           </ul>
         </section>
@@ -257,9 +252,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="config.js?v=4"></script>
-  <script src="core.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="config.js?v=5"></script>
+  <script src="core.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 
   <!-- Statistiche d'uso anonime, senza cookie: https://pets.goatcounter.com -->
   <script data-goatcounter="https://pets.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
