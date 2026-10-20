@@ -55,6 +55,8 @@
   const RE_PS = /pronto\s*soccorso|emergenz|\bh\s?24\b|24\s*(ore|h)\b|sempre aperto/i;
   const RE_FARMACIA = /farmaci/i;
   const RE_ANIMALI = /veterinar|animal|\bpets?\b|\bzoo|\b(cani|gatti)\b/i;
+  // Pensioni segnate su OpenStreetMap come canile, addestramento, allevamento o negozio: si riconoscono dal nome
+  const RE_PENSIONE = /pension[ei]|\b(pets?|dogs?|cats?|gatto|bau|miao) ?hotel\b|\bhotel per\b|asilo (per|e|diurno)/i;
 
   /** Codice del tipo di punto a partire dai tag OSM, oppure null se non riguarda gli animali domestici. */
   function tipoDaTag(t) {
@@ -65,6 +67,7 @@
         RE_PS.test(nome) || /^24\/7$/.test((t.opening_hours || "").trim());
       return ps ? "S" : "V";
     }
+    if (RE_PENSIONE.test(nome) && (/^animal_(shelter|training|breeding|grooming)$/.test(am) || sh === "pet" || sh === "pet_grooming")) return "B";
     if (sh === "veterinary_pharmacy") return "F";
     if ((am === "pharmacy" || t.healthcare === "pharmacy" || sh === "chemist") && (RE_ANIMALI.test(nome) || t.veterinary === "yes")) return "F";
     if (sh === "pet" && RE_FARMACIA.test(nome)) return "F";
@@ -133,12 +136,19 @@
     return scelti.has(d.k) || (d.k === "S" && scelti.has("V"));
   }
 
-  // ---------- Veterinari da Overture Maps ----------
-  // Su OpenStreetMap mancano molti veterinari: si aggiungono quelli di Overture che OpenStreetMap non ha già.
-  const PAROLE_GENERICHE = /\b(ambulatori[oa]?|clinica|cliniche|veterinari[ao]?|veterinarie|ospedale|studio|centro|medico|medica|dott?\.?|dr\.?|dottor(essa)?|ssa|di|del|della|dei|delle|da|e|il|la|lo|srl|snc|sas|s\.?r\.?l\.?|associat[oi]|animali|pet|vet)\b/g;
+  // ---------- Veterinari e pensioni da Overture Maps ----------
+  // Su OpenStreetMap mancano molti veterinari e quasi tutte le pensioni: si aggiungono quelli di Overture che
+  // OpenStreetMap non ha già.
+  const PAROLE_GENERICHE = /\b(ambulatori[oa]?|clinica|cliniche|veterinari[ao]?|veterinarie|ospedale|studio|centro|medico|medica|dott?\.?|dr\.?|dottor(essa)?|ssa|di|del|della|dei|delle|da|e|il|la|lo|per|srl|snc|sas|s\.?r\.?l\.?|associat[oi]|animali|pet|vet|pension[ei]|cani|cane|gatti|gatto|dogs?|cats?|hotel|asilo|sitter)\b/g;
   function paroleNome(n) {
     return new Set(String(n || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(PAROLE_GENERICHE, " ").split(/[^a-z0-9]+/).filter((w) => w.length >= 4));
+  }
+  // Stesso nome a parte maiuscole, accenti e punteggiatura (Overture ha spesso due copie dello stesso posto),
+  // purché non sia solo un nome generico come "Pensione per cani"
+  const nomeNormale = (n) => String(n || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "");
+  function stessoNome(a, b) {
+    return paroleNome(a).size > 0 && nomeNormale(a) === nomeNormale(b);
   }
   function nomiSimili(a, b) {
     const pa = paroleNome(a);
@@ -146,28 +156,30 @@
     return false;
   }
   /**
-   * Aggiunge a "punti" (OpenStreetMap) i veterinari di "extra" (Overture) che non sono doppioni:
-   * scarta quelli entro 60 m da un veterinario già presente, o entro 300 m con un nome simile.
+   * Aggiunge a "punti" (OpenStreetMap) i veterinari e le pensioni di "extra" (Overture) che non sono doppioni:
+   * scarta quelli entro 60 m da un punto dello stesso genere già presente, entro 300 m con un nome simile
+   * o entro 1 km con lo stesso nome.
    */
-  function unisciVeterinari(punti, extra) {
+  function unisciOverture(punti, extra) {
     const CELLA = 0.005;   // circa 500 m
+    const GENERE = { V: "V", S: "V", B: "B" };   // il pronto soccorso è un veterinario
     const griglia = new Map();
-    const chiave = (la, lo) => Math.floor(la / CELLA) + "_" + Math.floor(lo / CELLA);
-    const metti = (p) => { const c = chiave(p.la, p.lo); if (!griglia.has(c)) griglia.set(c, []); griglia.get(c).push(p); };
+    const chiave = (g, la, lo) => g + Math.floor(la / CELLA) + "_" + Math.floor(lo / CELLA);
+    const metti = (p) => { const c = chiave(GENERE[p.k], p.la, p.lo); if (!griglia.has(c)) griglia.set(c, []); griglia.get(c).push(p); };
     const doppione = (p) => {
       const i = Math.floor(p.la / CELLA), j = Math.floor(p.lo / CELLA);
-      for (let a = i - 1; a <= i + 1; a++) for (let b = j - 1; b <= j + 1; b++) {
-        for (const q of griglia.get(a + "_" + b) || []) {
+      for (let a = i - 2; a <= i + 2; a++) for (let b = j - 2; b <= j + 2; b++) {
+        for (const q of griglia.get(GENERE[p.k] + a + "_" + b) || []) {
           const d = distanza(p.la, p.lo, q.la, q.lo);
-          if (d < 60 || (d < 300 && nomiSimili(p.n, q.n))) return true;
+          if (d < 60 || (d < 300 && nomiSimili(p.n, q.n)) || (d < 1000 && stessoNome(p.n, q.n))) return true;
         }
       }
       return false;
     };
-    for (const p of punti) if (p.k === "V" || p.k === "S") metti(p);
+    for (const p of punti) if (GENERE[p.k]) metti(p);
     const aggiunti = [];
     for (const p of extra || []) {
-      if (doppione(p)) continue;
+      if (!GENERE[p.k] || doppione(p)) continue;
       metti(p);
       aggiunti.push(p);
     }
@@ -365,7 +377,7 @@
   const API = {
     distanza, formattaDistanza, minutiInAuto, minutiAPiedi, TIPI, tipoDaTag, compatta, nellaCategoria,
     leggiOrari, statoApertura, testoApertura, orariLeggibili, tessereNelRaggio, nomeTessera, riquadro,
-    queryOverpass, unisciVeterinari, nomiSimili, preparaPunti, statistiche, capitalizza, titolo, indirizzo, nomeTipo, GIORNI_IT
+    queryOverpass, unisciOverture, nomiSimili, preparaPunti, statistiche, capitalizza, titolo, indirizzo, nomeTipo, GIORNI_IT
   };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.PT = API;

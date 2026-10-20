@@ -17,10 +17,11 @@ Stesso aspetto e funzionamento di [Distributori](https://github.com/paolo1957-it
   scarica da Overpass tutti i punti d'Italia e li salva nella cartella `dati/` del sito pubblicato,
   divisi in tessere da 0,25° (circa 28 × 20 km). Per non pesare su Overpass li riscarica al massimo una volta
   ogni 20 ore; nel frattempo ricopia quelli già pubblicati.
-- Su OpenStreetMap mancano molti veterinari: quando riscarica i dati, `aggiorna_animali.js` esegue anche
+- Su OpenStreetMap mancano molti veterinari e quasi tutte le pensioni: quando riscarica i dati, `aggiorna_animali.js` esegue anche
   `aggiorna_overture.py`, che prende da [Overture Maps](https://overturemaps.org) (licenza CDLA Permissive 2.0)
-  veterinari e cliniche veterinarie in Italia; si aggiungono solo quelli che non sono già su OpenStreetMap
-  (entro 60 m, o 300 m con un nome simile). Se Overture non risponde si usa solo OpenStreetMap.
+  veterinari, cliniche veterinarie e pensioni per animali in Italia (le pensioni anche dal nome, perché su Overture
+  hanno spesso un'altra categoria); si aggiungono solo quelli che non sono già su OpenStreetMap
+  (entro 60 m, 300 m con un nome simile o 1 km con lo stesso nome). Se Overture non risponde si usa solo OpenStreetMap.
   I punti di Overture segnalati come sbagliati si tolgono aggiungendo il loro identificativo in `overture_esclusi.json`.
 - La cartella `dati/` **non** sta nel repository. Se il sito non ha i dati, l'app li chiede direttamente a Overpass.
 - Statistiche d'uso anonime, senza cookie, con [GoatCounter](https://www.goatcounter.com): si vedono su
@@ -42,5 +43,5 @@ Per riscaricare subito i dati: Actions → *Pubblica sito e aggiorna dati* → *
 
 ## Fonte dei dati
 
-© OpenStreetMap e chi contribuisce (licenza ODbL). Veterinari anche da Overture Maps Foundation (licenza CDLA Permissive 2.0). Le informazioni sono inserite da volontari e possono
+© OpenStreetMap e chi contribuisce (licenza ODbL). Veterinari e pensioni anche da Overture Maps Foundation (licenza CDLA Permissive 2.0). Le informazioni sono inserite da volontari e possono
 essere incomplete o non aggiornate.
