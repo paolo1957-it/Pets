@@ -44,11 +44,14 @@ def elenco(prefisso, delimitatore=True):
 
 def tipo(tassonomia, nome):
     """Tipo dell'app per un luogo di Overture, oppure None."""
+    k = tipo_da_categoria(tassonomia, nome)
+    return None if k == "B" and RE_NON_PENSIONE.search(nome) else k
+
+
+def tipo_da_categoria(tassonomia, nome):
     primaria = tassonomia.get("primary") or ""
     k = CATEGORIE.get(primaria)
-    if k == "B":
-        return None if RE_NON_PENSIONE.search(nome) else k
-    if not RE_PENSIONE.search(nome):
+    if k == "B" or not RE_PENSIONE.search(nome):
         return k
     if RE_CLINICA.search(nome):
         return k
