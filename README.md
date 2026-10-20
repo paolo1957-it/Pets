@@ -23,6 +23,8 @@ Stesso aspetto e funzionamento di [Distributori](https://github.com/paolo1957-it
   (entro 60 m, o 300 m con un nome simile). Se Overture non risponde si usa solo OpenStreetMap.
   I punti di Overture segnalati come sbagliati si tolgono aggiungendo il loro identificativo in `overture_esclusi.json`.
 - La cartella `dati/` **non** sta nel repository. Se il sito non ha i dati, l'app li chiede direttamente a Overpass.
+- Statistiche d'uso anonime, senza cookie, con [GoatCounter](https://www.goatcounter.com): si vedono su
+  https://pets.goatcounter.com (stesso login delle altre app).
 
 ## Pubblicazione
 
