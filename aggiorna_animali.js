@@ -20,7 +20,7 @@ const CARTELLA = path.join(__dirname, "dati");
 const PASSO = 0.25;
 const ORE_VALIDI = 20;
 // Da aumentare quando cambiano i tipi di punti scaricati: i dati pubblicati con una versione diversa vengono riscaricati subito
-const VERSIONE_DATI = 3;
+const VERSIONE_DATI = 4;
 const USER_AGENT = "Pets/1.0 (app web personale; dati OpenStreetMap)";
 const SERVER = [
   "https://overpass-api.de/api/interpreter",
@@ -72,22 +72,22 @@ async function daOverpass() {
   throw new Error("Overpass non raggiungibile: " + (ultimo && ultimo.message));
 }
 
-// Veterinari di Overture Maps: li scarica aggiorna_overture.py (Python), solo quando si riscaricano i dati.
+// Veterinari e pensioni di Overture Maps: li scarica aggiorna_overture.py (Python), solo quando si riscaricano i dati.
 // La variabile OVERTURE può indicare un file già pronto. Se qualcosa va storto si usa solo OpenStreetMap.
 function veterinariOverture() {
   let file = process.env.OVERTURE;
   try {
     if (!file) {
       file = path.join(require("os").tmpdir(), "overture_veterinari.json");
-      console.log("Scarico i veterinari da Overture Maps …");
+      console.log("Scarico veterinari e pensioni da Overture Maps …");
       require("child_process").execFileSync("python3", [path.join(__dirname, "aggiorna_overture.py"), file],
         { stdio: "inherit", timeout: 25 * 60000 });
     }
     const dati = JSON.parse(fs.readFileSync(file, "utf8"));
-    console.log(`Overture ${dati.versione}: ${dati.punti.length} veterinari`);
+    console.log(`Overture ${dati.versione}: ${dati.punti.length} punti`);
     return dati;
   } catch (e) {
-    console.log(`Veterinari di Overture non disponibili (${e.message}): uso solo OpenStreetMap.`);
+    console.log(`Dati di Overture non disponibili (${e.message}): uso solo OpenStreetMap.`);
     return { punti: [] };
   }
 }
@@ -104,9 +104,9 @@ function salva(elementi, overture) {
     osm.push(p);
   }
   overture = overture || { punti: [] };
-  const tutti = PT.unisciVeterinari(osm, overture.punti);
+  const tutti = PT.unisciOverture(osm, overture.punti);
   const daOverture = tutti.length - osm.length;
-  console.log(`  aggiunti ${daOverture} veterinari da Overture (scartati ${overture.punti.length - daOverture} già presenti)`);
+  console.log(`  aggiunti ${daOverture} punti da Overture (scartati ${overture.punti.length - daOverture} già presenti)`);
   for (const p of tutti) {
     if (!(p.la >= 35 && p.la <= 47.5 && p.lo >= 6 && p.lo <= 19)) continue;
     const t = PT.nomeTessera(p.la, p.lo, PASSO);
@@ -125,7 +125,7 @@ function salva(elementi, overture) {
     perTipo: conta,
     overture: overture.versione || null,
     tessere: [...tessere.keys()].sort(),
-    fonte: "© OpenStreetMap contributors (ODbL); veterinari anche da Overture Maps Foundation (CDLA Permissive 2.0)"
+    fonte: "© OpenStreetMap contributors (ODbL); veterinari e pensioni anche da Overture Maps Foundation (CDLA Permissive 2.0)"
   };
   fs.writeFileSync(path.join(CARTELLA, "indice.json"), JSON.stringify(indice, null, 1));
   console.log(`  salvate ${tessere.size} tessere, ${indice.punti} punti`, conta);

@@ -1,4 +1,4 @@
-# TEMPORANEO: diagnosi delle pensioni per animali. Non pubblica nulla. Da togliere prima di unire a main.
+# TEMPORANEO: anteprima dei dati con le pensioni. Scarica come la pubblicazione ma NON pubblica nulla.
 name: Prova pensioni (diagnosi)
 on:
   push:
@@ -7,16 +7,13 @@ on:
 permissions:
   contents: read
 jobs:
-  osm:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - run: node prova/diagnosi_osm.js
-        timeout-minutes: 40
-  overture:
+  anteprima:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - run: pip install --quiet pyarrow fsspec aiohttp
-      - run: python3 prova/diagnosi_overture.py
-        timeout-minutes: 40
+      - run: node aggiorna_animali.js
+        timeout-minutes: 60
+        env:
+          FORZA: "1"
+      - run: node prova/conta_pensioni.js
