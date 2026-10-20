@@ -13,3 +13,4 @@ for (const [c, [la, lo]] of Object.entries(CITTA)) {
   console.log(`\n${c}: ${vicini.length} pensioni entro 15 km (${vicini.filter((p) => p.d < 5000).length} entro 5 km)`);
   for (const p of vicini.slice(0, 15)) console.log(`  ${(p.d / 1000).toFixed(1)} km  ${p.f === "o" ? "Overture" : "OSM     "}  ${p.n || "-"} | ${p.c || ""}`);
 }
+// nuova anteprima
