@@ -370,11 +370,112 @@
     righe.push(d.f === "o"
       ? '<p class="fonte">Fonte: Overture Maps (non ancora su OpenStreetMap)</p>'
       : `<p class="fonte">Fonte: OpenStreetMap · <a href="${attr(linkOsm(d))}" target="_blank" rel="noopener">Vedi su OpenStreetMap</a></p>`);
+    // fontanelle: foto scattata dall'utente, salvata solo su questo telefono (riempita all'apertura del popup)
+    if (d.k === "W") righe.push(`<div class="pop-foto" data-id="${attr(d.i)}"></div>`);
     const pulsanti = [`<a class="pop-vai" href="${linkNavigazione(d.la, d.lo)}" target="_blank" rel="noopener">Portami qui</a>`];
     if (tel.length) pulsanti.push(`<a class="pop-vai pop-chiama" href="tel:${attr(tel[0].replace(/[^\d+]/g, ""))}">Chiama</a>`);
     return `<div class="pop" data-voce="${attr(voce.join(" "))}"><h3>${esc(tit)}</h3>${righe.join("")}
       <div class="pop-pulsanti">${pulsanti.join("")}</div></div>`;
   }
+
+  // ---------- Foto delle fontanelle ----------
+  // Il sito non ha un server: la foto resta nel telefono (IndexedDB), ridotta per non occupare spazio.
+  const Foto = (() => {
+    let db = null;
+    function apri() {
+      if (db) return db;
+      db = new Promise((ok, ko) => {
+        if (!window.indexedDB) return ko(new Error("no idb"));
+        const r = indexedDB.open("pets-foto", 1);
+        r.onupgradeneeded = () => r.result.createObjectStore("foto");
+        r.onsuccess = () => ok(r.result);
+        r.onerror = () => ko(r.error);
+      });
+      db.catch(() => { db = null; });
+      return db;
+    }
+    function op(modo, fn) {
+      return apri().then((b) => new Promise((ok, ko) => {
+        const t = b.transaction("foto", modo);
+        const r = fn(t.objectStore("foto"));
+        t.oncomplete = () => ok(r.result);
+        t.onerror = () => ko(t.error);
+      }));
+    }
+    return {
+      leggi: (id) => op("readonly", (s) => s.get(id)),
+      salva: (id, blob) => op("readwrite", (s) => s.put(blob, id)),
+      togli: (id) => op("readwrite", (s) => s.delete(id))
+    };
+  })();
+
+  // Riduce la foto a 1280 px sul lato lungo, in JPEG: da qualche MB a circa 150-300 KB
+  function riduciFoto(file) {
+    return new Promise((ok, ko) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const max = 1280, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.naturalWidth * sc);
+        c.height = Math.round(img.naturalHeight * sc);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => (b ? ok(b) : ko(new Error("foto"))), "image/jpeg", 0.75);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); ko(new Error("foto")); };
+      img.src = url;
+    });
+  }
+
+  let urlFoto = null;
+  function mostraFoto(box, popup) {
+    const id = box.dataset.id;
+    const pulsante = (testo) => `<button type="button" class="pop-scatta">${testo}</button>
+      <input type="file" accept="image/*" capture="environment" class="pop-file" tabindex="-1" aria-hidden="true">`;
+    // non popup.update(): ricreerebbe il contenuto e cancellerebbe la foto; solo misure, posizione e scorrimento
+    const ridisegna = () => {
+      if (!popup || !popup.isOpen()) return;
+      popup._updateLayout(); popup._updatePosition(); popup._adjustPan();
+    };
+    Foto.leggi(id).then((blob) => {
+      if (!box.isConnected) return;
+      if (urlFoto) { URL.revokeObjectURL(urlFoto); urlFoto = null; }
+      if (blob) {
+        urlFoto = URL.createObjectURL(blob);
+        box.innerHTML = `<img src="${urlFoto}" alt="La tua foto della fontanella">
+          <div class="pop-foto-azioni"><button type="button" class="pop-rifai">Rifai la foto</button>
+          <button type="button" class="pop-togli">Togli la foto</button></div>
+          <input type="file" accept="image/*" capture="environment" class="pop-file" tabindex="-1" aria-hidden="true">`;
+        box.querySelector("img").addEventListener("load", ridisegna);
+        box.querySelector(".pop-togli").addEventListener("click", () => {
+          if (!confirm("Togliere la foto di questa fontanella?")) return;
+          Foto.togli(id).then(() => mostraFoto(box, popup));
+        });
+      } else {
+        box.innerHTML = pulsante("📷 Scatta una foto");
+      }
+      const file = box.querySelector(".pop-file");
+      box.querySelector(".pop-scatta, .pop-rifai").addEventListener("click", () => file.click());
+      file.addEventListener("change", () => {
+        const f = file.files && file.files[0];
+        if (!f) return;
+        box.innerHTML = '<p class="fonte">Salvo la foto…</p>';
+        riduciFoto(f).then((b) => Foto.salva(id, b))
+          .then(() => {
+            if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+            mostraFoto(box, popup);
+          })
+          .catch(() => { toast("Non sono riuscito a salvare la foto."); mostraFoto(box, popup); });
+      });
+      ridisegna();
+    }).catch(() => { box.hidden = true; });
+  }
+  mappa.on("popupopen", (e) => {
+    const el = e.popup.getElement && e.popup.getElement();
+    const box = el && el.querySelector(".pop-foto");
+    if (box) mostraFoto(box, e.popup);
+  });
 
   // Per i pulsanti in basso: cercano tra tutti i punti nel raggio, qualunque sia la categoria scelta
   function tuttiNelRaggio() {
@@ -649,7 +750,7 @@
       A: ": aree dove i cani possono correre liberi.",
       K: ": canili e rifugi per animali, dove si può anche adottare.",
       B: ": dove lasciare il tuo animale quando sei via.",
-      W: ": fontanelle e abbeveratoi per far bere il cane. Si vedono solo scegliendo “Fontanelle” nel menu.",
+      W: ": fontanelle e abbeveratoi per far bere il cane. Si vedono solo scegliendo “Fontanelle” nel menu. Nella scheda di una fontanella puoi scattarle una foto: resta salvata solo sul tuo telefono e la rivedi la volta dopo.",
       X: ": addestramento, allevamenti e altro."
     }[k] || "."}</div></li>`).join("");
 
