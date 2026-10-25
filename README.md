@@ -6,6 +6,9 @@ animali, toelettature, aree cani, canili e rifugi, pensioni per animali, fontane
 Stesso aspetto e funzionamento di [Distributori](https://github.com/paolo1957-it/Distributori) e
 [Salus](https://github.com/paolo1957-it/Salus).
 
+Nella cartella [`trekking/`](trekking/) c'è **Qui-Trekking**, con lo stesso aspetto: sentieri CAI con difficoltà,
+lunghezza, dislivello e segnavia, rifugi e fontanelle (pubblicata in `…/Pets/trekking/`).
+
 ## Come funziona
 
 - I segnaposto hanno un colore e un simbolo per tipo; un pallino verde o rosso dice se è aperto adesso,
