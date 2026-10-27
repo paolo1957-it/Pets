@@ -2,8 +2,8 @@
  * Pets – configurazione
  */
 window.PETS_CONFIG = {
-  // Versione dell'app, mostrata in diagonale sulla mappa. Aumentala a ogni aggiornamento.
-  versione: "8",
+  // Versione dell'app, mostrata in fondo alla pagina Elenco. Aumentala a ogni aggiornamento.
+  versione: "9",
 
   // Raggio di ricerca iniziale in metri (modificabile anche dall'app)
   raggioMetri: 5000,
