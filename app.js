@@ -114,6 +114,10 @@
   const attr = (t) => String(t).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   const linkNavigazione = (lat, lon) =>
     `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+  const linkOsm = (d) => {
+    const tipo = { n: "node", w: "way", r: "relation" }[d.i[0]];
+    return tipo ? `https://www.openstreetmap.org/${tipo}/${d.i.slice(1)}` : `https://www.openstreetmap.org/?mlat=${d.la}&mlon=${d.lo}#map=19/${d.la}/${d.lo}`;
+  };
   const sitoWeb = (w) => /^https?:\/\//i.test(w) ? w : "https://" + w;
   const telefoni = (t) => String(t || "").split(/[;,]/).map((x) => x.trim()).filter(Boolean);
   const nomeCategoria = () => stato.categorie.size === 1 ? PT.TIPI[[...stato.categorie][0]].plurale.toLowerCase() : "servizi per animali";
@@ -356,7 +360,7 @@
     voce.push(distanzaParlata(d.distanza) + ".");
     righe.push(d.f === "o"
       ? '<p class="fonte">Fonte: Overture Maps (non ancora su OpenStreetMap)</p>'
-      : '<p class="fonte">Fonte: OpenStreetMap</p>');
+      : `<p class="fonte">Fonte: OpenStreetMap · <a href="${attr(linkOsm(d))}" target="_blank" rel="noopener">Vedi su OpenStreetMap</a></p>`);
     // fontanelle: foto scattata dall'utente, salvata solo su questo telefono (riempita all'apertura del popup)
     if (d.k === "W") righe.push(`<div class="pop-foto" data-id="${attr(d.i)}"></div>`);
     const pulsanti = [`<a class="pop-vai" href="${linkNavigazione(d.la, d.lo)}" target="_blank" rel="noopener">Portami qui</a>`];
