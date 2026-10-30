@@ -125,7 +125,10 @@ function salva(elementi, overture) {
     perTipo: conta,
     overture: overture.versione || null,
     tessere: [...tessere.keys()].sort(),
-    fonte: "© OpenStreetMap contributors (ODbL); veterinari e pensioni anche da Overture Maps Foundation (CDLA Permissive 2.0)"
+    fonte: "© OpenStreetMap contributors (ODbL); veterinari e pensioni anche da Overture Maps Foundation (CDLA Permissive 2.0)",
+    licenza: "Open Database License (ODbL) 1.0",
+    licenzaUrl: "https://opendatacommons.org/licenses/odbl/1-0/",
+    generatoDa: "https://github.com/paolo1957-it/Pets"
   };
   fs.writeFileSync(path.join(CARTELLA, "indice.json"), JSON.stringify(indice, null, 1));
   console.log(`  salvate ${tessere.size} tessere, ${indice.punti} punti`, conta);
