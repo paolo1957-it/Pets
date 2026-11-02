@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
   <div class="app">
@@ -92,6 +92,11 @@
         <div class="stato" id="stato" role="status" aria-live="polite">Cerco la tua posizione…</div>
 
         <button class="emergenza" id="btn-ps-elenco" type="button">Emergenza? <b>Pronto soccorso veterinario</b> più vicino</button>
+
+        <button class="btn-installa" id="btn-installa" type="button" hidden>
+          <img src="icon-192.png" alt="" width="36" height="36">
+          <span><b>Installa l'app</b><small>Metti l'icona di Pets sulla schermata Home</small></span>
+        </button>
 
         <label class="auto" for="auto-refresh">
           <span>AUTO-REFRESH</span>
@@ -182,7 +187,7 @@
             <li><span class="g-segno"><span class="mk tipo-V aperto"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><g fill="currentColor"><ellipse cx="5.6" cy="10.4" rx="2.2" ry="2.8"/><ellipse cx="9.6" cy="5.6" rx="2.2" ry="2.8"/><ellipse cx="14.4" cy="5.6" rx="2.2" ry="2.8"/><ellipse cx="18.4" cy="10.4" rx="2.2" ry="2.8"/><path d="M12 11.2c-2.9 0-6 4.4-6 7 0 1.8 1.4 2.6 3 2.6 1.3 0 2-.6 3-.6s1.7.6 3 .6c1.6 0 3-.8 3-2.6 0-2.6-3.1-7-6-7Z"/></g></svg></span></span><div><b>Pallino verde</b>: aperto adesso, secondo gli orari su OpenStreetMap.</div></li>
             <li><span class="g-segno"><span class="mk tipo-V chiuso"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><g fill="currentColor"><ellipse cx="5.6" cy="10.4" rx="2.2" ry="2.8"/><ellipse cx="9.6" cy="5.6" rx="2.2" ry="2.8"/><ellipse cx="14.4" cy="5.6" rx="2.2" ry="2.8"/><ellipse cx="18.4" cy="10.4" rx="2.2" ry="2.8"/><path d="M12 11.2c-2.9 0-6 4.4-6 7 0 1.8 1.4 2.6 3 2.6 1.3 0 2-.6 3-.6s1.7.6 3 .6c1.6 0 3-.8 3-2.6 0-2.6-3.1-7-6-7Z"/></g></svg></span></span><div><b>Più chiaro, con pallino rosso</b>: chiuso adesso.</div></li>
             <li><span class="g-segno"><span class="mk tipo-V"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><g fill="currentColor"><ellipse cx="5.6" cy="10.4" rx="2.2" ry="2.8"/><ellipse cx="9.6" cy="5.6" rx="2.2" ry="2.8"/><ellipse cx="14.4" cy="5.6" rx="2.2" ry="2.8"/><ellipse cx="18.4" cy="10.4" rx="2.2" ry="2.8"/><path d="M12 11.2c-2.9 0-6 4.4-6 7 0 1.8 1.4 2.6 3 2.6 1.3 0 2-.6 3-.6s1.7.6 3 .6c1.6 0 3-.8 3-2.6 0-2.6-3.1-7-6-7Z"/></g></svg></span></span><div><b>Senza pallino</b>: orari non indicati, o scritti in un modo che l'app non sa leggere.</div></li>
-            <li><span class="g-segno"><span class="io"></span></span><div><b>Punto azzurro</b>: sei tu. Il <b>cerchio tratteggiato</b> è il raggio di ricerca.</div></li>
+            <li><span class="g-segno"><span class="io"></span></span><div><b>Punto azzurro</b>: sei tu. Il <b>cono azzurro</b> mostra dove è rivolto il telefono (su iPhone tocca il pulsante della posizione e consenti <i>Movimento e orientamento</i>). Il <b>cerchio tratteggiato</b> è il raggio di ricerca.</div></li>
           </ul>
           <p>Tocca un segnaposto per aprire il <b>riquadro</b>: nome, tipo, indirizzo, orari, telefono, sito e distanza.
             L'app lo legge ad alta voce (se la lettura vocale è attiva). <b>Portami qui</b> apre il navigatore,
@@ -246,7 +251,7 @@
           <ul class="g-punti">
             <li>In <b>emergenza</b> telefona prima alla clinica veterinaria: ti dicono se possono riceverti e ti preparano l'arrivo.</li>
             <li>Se trovi un <b>animale ferito o abbandonato</b> per strada, avvisa la polizia locale o il servizio veterinario della tua ASL.</li>
-            <li>Su iPhone: in Safari tocca <b>Condividi → Aggiungi alla schermata Home</b> per usarla come un'app.</li>
+            <li>Metti l'icona sulla schermata Home: nella pagina Elenco tocca <b>Installa l'app</b> e segui i passaggi (su iPhone: in Safari <b>Condividi → Aggiungi alla schermata Home</b>).</li>
             <li>Al primo avvio consenti l'accesso alla <b>posizione</b>. Tocca la mappa una volta per abilitare suoni e voce.</li>
             <li>Con tanti tipi scelti, in città i segnaposto possono essere molti: togli qualche tipo o riduci il raggio.</li>
             <li>Ti è utile? In alto nella pagina Elenco tocca il pulsante verde <b>Condividi</b>: si apre WhatsApp con un messaggio già scritto e il link all'app.</li>
@@ -257,12 +262,29 @@
     </section>
   </div>
 
+  <section class="installa" id="installa" role="dialog" aria-modal="false" aria-labelledby="installa-titolo" hidden>
+    <div class="installa-testa">
+      <img src="icon-192.png" alt="" width="52" height="52">
+      <div>
+        <h2 id="installa-titolo">Metti Pets sul telefono</h2>
+        <p>Con l'icona sulla schermata Home la apri con un tocco, come un'app, a tutto schermo.</p>
+      </div>
+    </div>
+    <div class="installa-corpo" id="installa-corpo"></div>
+    <div class="installa-azioni">
+      <button class="installa-dopo" id="installa-dopo" type="button">Più tardi</button>
+      <button class="installa-ok" id="installa-ok" type="button">Installa</button>
+    </div>
+  </section>
+
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="config.js?v=9"></script>
-  <script src="core.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="config.js?v=10"></script>
+  <script src="core.js?v=10"></script>
+  <script src="app.js?v=10"></script>
+  <script src="installa.js?v=10"></script>
+  <script src="bussola.js?v=10"></script>
 
   <!-- Statistiche d'uso anonime, senza cookie: https://pets.goatcounter.com -->
   <script data-goatcounter="https://pets.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
