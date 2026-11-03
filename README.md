@@ -1,10 +1,10 @@
-# Pets
+# Qui-Pets
 
 Web app per il telefono che mostra i servizi per gli animali domestici vicino a te presi da OpenStreetMap:
 pronto soccorso veterinari, veterinari e cliniche veterinarie, farmacie e parafarmacie veterinarie, negozi per
 animali, toelettature, aree cani, canili e rifugi, pensioni per animali, fontanelle e abbeveratoi e altro (addestramento, allevamenti).
-Stesso aspetto e funzionamento di [Distributori](https://github.com/paolo1957-it/Distributori) e
-[Salus](https://github.com/paolo1957-it/Salus).
+Stesso aspetto e funzionamento di [Distributori](https://github.com/quivicino/Distributori) e
+[Salus](https://github.com/quivicino/Salus).
 
 ## Come funziona
 
